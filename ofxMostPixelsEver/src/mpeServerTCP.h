@@ -22,6 +22,7 @@
 
 typedef struct
 {
+	bool dead;
 	bool started;
 	bool ready;
 	string name;
@@ -44,6 +45,8 @@ class mpeServerTCP : public ofThread
 	ofxTCPServer server;
 	void update(ofEventArgs& args);
 	void threadedFunction();
+
+	void sendToAll(string message);
 
 	float lastFrameTriggeredTime;
 	bool allconnected;

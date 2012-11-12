@@ -21,7 +21,7 @@
 mpeServerTCP::mpeServerTCP()
 {
 	allconnected = false;
-	framerate = 30;
+	framerate = 60;
 	numExpectedClients = 0;
 	numConnectedClients = 0;
 	currentFrame = 0;
@@ -82,7 +82,7 @@ void mpeServerTCP::setup(int fps, int port, int numClients)
 	lastFrameTriggeredTime = 0;
 	currentFrame = 0;
 
-	//ofAddListener(ofEvents.update, this, &mpeServerTCP::update);
+	//ofAddListener(ofEvents().update, this, &mpeServerTCP::update);
 
 	cout << "Setting up server with FPS " << fps << " on port " << port << " with clients " << numClients << endl;
 }
@@ -90,6 +90,7 @@ void mpeServerTCP::setup(int fps, int port, int numClients)
 
 void mpeServerTCP::update(ofEventArgs& args)
 {
+
 //	if(!server.isConnected()){
 //		ofLog(OF_LOG_ERROR, "MPE Server :: Server Disconnected");
 //	}
@@ -133,7 +134,7 @@ void mpeServerTCP::reset()
 {
 	currentFrame = 0;
 	shouldTriggerFrame = false;
-	server.sendToAll("R");
+	sendToAll("R");
 
 }
 
@@ -158,7 +159,7 @@ void mpeServerTCP::threadedFunction()
 					currentMessage = "";
 				}
 
-				server.sendToAll(message);
+				sendToAll(message);
 
 				for(int i = 0; i < connections.size(); i++){
 					connections[i].ready = false;
@@ -190,7 +191,7 @@ void mpeServerTCP::threadedFunction()
 				shouldTriggerFrame = false;
 				allconnected = false;
 
-				server.sendToAll("R");
+				sendToAll("R");
 			}
 
 			//cout << "All clients are connected! " << endl;
@@ -224,7 +225,7 @@ void mpeServerTCP::threadedFunction()
                             allconnected = false;
                             currentFrame = 0;
                             shouldTriggerFrame = false;
-                            server.sendToAll("R");
+                            sendToAll("R");
 						}
 
 						connections[clientID].tcpServerIndex = i;
@@ -311,7 +312,7 @@ void mpeServerTCP::close()
 {
 	if(!running) return;
 
-	ofRemoveListener(ofEvents.update, this, &mpeServerTCP::update);
+	ofRemoveListener(ofEvents().update, this, &mpeServerTCP::update);
 
 	cout << " closing MPE Server " << endl;
 
@@ -324,4 +325,13 @@ void mpeServerTCP::close()
 	stopThread();
 
 	running = false;
+}
+
+void mpeServerTCP::sendToAll(string message)
+{
+	for(int i = 0; i < server.getLastID(); i++){
+		if( !server.isClientConnected(i) )continue;
+	
+		server.send(i, message );
+	}
 }

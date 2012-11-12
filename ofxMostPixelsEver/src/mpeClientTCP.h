@@ -47,6 +47,7 @@ class mpeClientTCP : public ofThread {
 
 	int   getPort() { return serverPort; }
 	int   getID()   { return id; }
+	int   getNumScreens()   { return numScreens; }
 
 
 	//we need this incase the server launches after the clients
@@ -95,11 +96,11 @@ class mpeClientTCP : public ofThread {
 //	bool  bytesAvailable() { return bBytesAvailable; }
 //	vector<char> getBytes() { return bytes; }
 
-	bool  DEBUG;
+	bool  DEBUG2;
 
   protected:
 	void setDefaults() {
-		DEBUG = true;
+		DEBUG2 = true;
         frameLock = true;
 
 		id = 0;
@@ -156,7 +157,7 @@ class mpeClientTCP : public ofThread {
 
     void setupViewport();
 
-//        void run();
+	//void run();
 	void read(string _serverInput);
 	void send(string _msg);
 

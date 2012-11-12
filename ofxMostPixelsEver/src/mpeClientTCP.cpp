@@ -47,16 +47,16 @@ void  mpeClientTCP::useSimulationMode(int framesPerSecond)
 //--------------------------------------------------------------
 void mpeClientTCP::start() {
 
-	tcpClient.setVerbose(DEBUG);
+	//tcpClient.setVerbose(DEBUG2);
 
 	//if(useMainThread){
-    ofAddListener(ofEvents.draw, this, &mpeClientTCP::draw);
+    ofAddListener(ofEvents().draw, this, &mpeClientTCP::draw);
 	//}
 
     if (!simulationMode && !tcpClient.setup(hostName, serverPort)) {
         err("TCP failed to connect to port " + ofToString(serverPort));
 		lastConnectionAttempt = ofGetElapsedTimef();
-		ofAddListener(ofEvents.update, this, &mpeClientTCP::retryConnectionLoop);
+		ofAddListener(ofEvents().update, this, &mpeClientTCP::retryConnectionLoop);
     }
 	else{
 		startThread(true, false);  // blocking, verbose
@@ -70,7 +70,7 @@ void mpeClientTCP::retryConnectionLoop(ofEventArgs& e)
 	if(now - lastConnectionAttempt > 1.0){ //retry every second
 		if(tcpClient.setup(hostName, serverPort)) {
 			//cout << "retry succeeded, removing listener!" << endl;
-			ofRemoveListener(ofEvents.update, this, &mpeClientTCP::retryConnectionLoop);
+			ofRemoveListener(ofEvents().update, this, &mpeClientTCP::retryConnectionLoop);
 			startThread(true, false);  // blocking, verbose
 		}
 		lastConnectionAttempt = now;
@@ -86,7 +86,7 @@ void mpeClientTCP::draw(ofEventArgs& e)
 			ofxMPEEventArgs e;
 			e.message = dataMessage[i];
 			e.frame = getFrameCount();
-			//cout << "sending message in update " << e.frame << " message " << e.message << endl;
+			//cout << "sending message i nupdate " << e.frame << " message " << e.message << endl;
 
 			ofNotifyEvent(ofxMPEEvents.mpeMessage, e);
 		}
@@ -100,6 +100,7 @@ void mpeClientTCP::draw(ofEventArgs& e)
 
 		if(triggerFrame){
 			//ofLog(OF_LOG_VERBOSE, "Trigger Event :: ! with frame count " + frameCount);
+			placeScreen();
 
 			triggerFrame = false;
 
@@ -166,7 +167,7 @@ void mpeClientTCP::loadIniFile(string _fileString) {
     setupViewport();
 
 	if (xmlReader.getValue("settings:debug", 0, 0) == 1){
-        DEBUG = true;
+        DEBUG2 = true;
 	}
 
     if(xmlReader.getValue("settings:simulation:on", 0, 0) == 1){
@@ -352,7 +353,7 @@ void mpeClientTCP::out(string _str) {
 // Outputs a message to the console.
 //--------------------------------------------------------------
 void mpeClientTCP::print(string _str) {
-    if (DEBUG)
+    if (DEBUG2)
         cout << "mpeClient: " << _str << endl;
 }
 
@@ -404,7 +405,7 @@ void mpeClientTCP::threadedFunction() {
 		}
 
 		
-		if (allConnected && ofGetElapsedTimef() - lastHeartbeatTime > 2.0) {
+		if (allConnected && ofGetElapsedTimef() - lastHeartbeatTime > 60.0) {
 			//we lost connection... manually disconnect and join reset cycle
 			if(tcpClient.close()){
 				ofLog(OF_LOG_ERROR, "mpeClientTCP -- server connection timed out. Closing and entering reconnect loop.");
@@ -417,7 +418,7 @@ void mpeClientTCP::threadedFunction() {
 		if(!tcpClient.isConnected()){
 			//we lost connection, start the retry loop and kill the thread
 			lastConnectionAttempt = ofGetElapsedTimef();
-			ofAddListener(ofEvents.update, this, &mpeClientTCP::retryConnectionLoop);
+			ofAddListener(ofEvents().update, this, &mpeClientTCP::retryConnectionLoop);
 			stopThread(true);
 			if(useMainThread){
 				shouldReset = true;
@@ -426,7 +427,7 @@ void mpeClientTCP::threadedFunction() {
 				reset();
 			}
 
-			if(DEBUG){
+			if(DEBUG2){
                 cout << "lost connection to server " << endl;
 			}
 			//break the loop because we'll need to restart
@@ -469,7 +470,7 @@ void mpeClientTCP::read(string _serverInput) {
 	}
     else if (c == 'G' || c == 'B' || c == 'I') {
         if (!allConnected) {
-            if (DEBUG) out("all connected!");
+            if (DEBUG2) out("all connected!");
             allConnected = true;
         }
 		
@@ -589,7 +590,7 @@ void mpeClientTCP::done() {
 	if(outgoingMessage != ""){
 		msg += outgoingMessage;
 		outgoingMessage = "";
-		//cout << "MPE DEBUG :: outgoing message is " << msg << endl;
+		//cout << "MPE DEBUG2 :: outgoing message is " << msg << endl;
 	}
     send(msg);
 }
@@ -601,7 +602,7 @@ void mpeClientTCP::stop() {
     out("Quitting.");
     stopThread();
 	if(useMainThread){
-		ofRemoveListener(ofEvents.draw, this, &mpeClientTCP::draw);
+		ofRemoveListener(ofEvents().draw, this, &mpeClientTCP::draw);
 	}
 }
 
